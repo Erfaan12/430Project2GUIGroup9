@@ -49,7 +49,7 @@ Quit result: Quit ends the interface session.
 
 ### UserInterface
 
-Displays the Login Panel, collects the selected role and credentials, calls Security, displays an error for failed authentication, and changes the visible panel after Security returns a result.
+Displays the current panel, collects input, calls Security, and sends the event and verification result to SessionContext. It displays the next panel selected by the context.
 
 ### Security
 
@@ -57,7 +57,13 @@ Owns `verifyPasswd(role, username, password)`. It checks the fixed manager and s
 
 ### SessionContext
 
-Stores session data that the FSM needs while the program is running: authenticated user, current role, active client ID, and a small role stack for delegated access. It does not perform warehouse operations.
+Stores the current panel, authenticated role, active client ID, and role-return history. It computes the next panel using the current panel, event, and stored information. Delegated logout restores the immediately previous role; ordinary logout clears the session and selects Login Panel. This follows the centralized context approach in textbook Section 8.9.1. Warehouse operations remain in the warehouse facade.
+
+## Shared Back and Logout rules
+
+Back or Quit within a sub-panel returns to its parent panel without ending the authenticated session. Login Panel has no Back option because it is the entry panel. Its Quit option closes the program. Logout from a role menu returns to Login Panel for a directly logged-in user or restores the immediately preceding role for delegated access. Panel-return history and role-return history are separate. Tasks 2 through 4 supply their sub-panel transitions.
+
+Only one panel is active at a time. Failed login remains in Login Panel. The logout guards are mutually exclusive: a prior delegated role either exists or does not exist. SessionContext evaluates the guard to select one next panel.
 
 ### Warehouse and ClientList
 
